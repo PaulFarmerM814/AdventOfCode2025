@@ -60,17 +60,25 @@ package body day1_2025 is
 
          case direction is
             when L =>
+               if (current_dial < rotation)
+               then
+                  zero_count := zero_count + 1;
+               end if;
                current_dial := current_dial - rotation;
             when R =>
+               if (rotation > 99 - current_dial)
+               then
+                  zero_count := zero_count + 1;
+               end if;
                current_dial := current_dial + rotation;
          end case;
 
-         -- zero_count := zero_count + through_itself;
+         zero_count := zero_count + through_itself;
 
-         if (current_dial = 0)
-         then
-            zero_count := zero_count + 1;
-         end if;
+         --  if (current_dial = 0)
+         --  then
+         --    zero_count := zero_count + 1;
+         --  end if;
 
       end loop;
 

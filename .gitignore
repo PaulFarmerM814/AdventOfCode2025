@@ -12,3 +12,6 @@
 # Test Output
 *.std*
 
+/obj
+/old
+/bin
