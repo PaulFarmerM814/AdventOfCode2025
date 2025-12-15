@@ -24,6 +24,8 @@ package body day3_2025 is
 
       max_joltage : Long_Long_Integer := 0;
       current_max_joltage : Long_Long_Integer := 0;
+      max_joltage_pt2 : Long_Long_Integer := 0;
+      current_max_joltage_pt2 : Long_Long_Integer := 0;
 
    begin
 
@@ -38,6 +40,14 @@ package body day3_2025 is
 
             current_string : constant string := Get_Input (Input_File);
             current_joltage : Long_Long_Integer := 0;
+
+            max_digit_found : character;
+            current_joltage_str : string(1..12) := (others => '0');
+
+            used_array : array(1..current_string'Length) of boolean;
+
+            start_pos : natural := 0;
+            found_pos : natural := 0;
 
          begin
 
@@ -54,14 +64,46 @@ package body day3_2025 is
                   end if;
                end loop;
             end loop;
-         end;
 
-         Ada.Text_IO.Put_Line ("current_max_joltage " & current_max_joltage'Image);
-         max_joltage := max_joltage + current_max_joltage;
+            Ada.Text_IO.Put_Line ("current_max_joltage " & current_max_joltage'Image);
+            max_joltage := max_joltage + current_max_joltage;
+
+            used_array := (others => false);
+            current_joltage_str := (others => '0');
+            start_pos := 1;
+
+            for x in 1..12
+            loop
+               current_joltage := 0;
+               max_digit_found := '0';
+               for y in start_pos..current_string'Last
+               loop
+                  if (Long_Long_Integer'Value(current_string(y..y)) > current_joltage
+                      and then
+                        not used_array(y)
+                      and then
+                      y <= current_string'Last - (12 - x + 1) + 1)
+                  then
+                     max_digit_found := current_string(y);
+                     used_array(y) := true;
+                     current_joltage := Long_Long_Integer'Value(current_string(y..y));
+                     found_pos := y;
+                  end if;
+               end loop;
+               current_joltage_str(x) := max_digit_found;
+               start_pos := found_pos + 1;
+            end loop;
+
+            current_max_joltage_pt2 := Long_Long_Integer'Value(current_joltage_str);
+            Ada.Text_IO.Put_Line ("current_max_joltage_pt2 " & current_max_joltage_pt2'Image);
+            max_joltage_pt2 := max_joltage_pt2 + current_max_joltage_pt2;
+
+         end;
 
       end loop;
 
       Ada.Text_IO.Put_Line ("max_joltage " & max_joltage'Image);
+      Ada.Text_IO.Put_Line ("max_joltage_pt2 " & max_joltage_pt2'Image);
 
       Ada.Text_IO.Close(Input_File);
 
