@@ -1,0 +1,14 @@
+# Object file
+*.o
+*.obj
+*.exe
+
+# Ada Library Information
+*.ali
+
+# 2023 Source Files
+*2023*
+
+# Test Output
+*.std*
+
