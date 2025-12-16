@@ -9,6 +9,7 @@ package body day5_2025 is
    type range_type is record
       start  : Long_Long_Integer;
       finish : Long_Long_Integer;
+      valid  : boolean;
    end record;
 
    package ranges_type is new
@@ -24,7 +25,29 @@ package body day5_2025 is
 
    ingredients : ingredient_type.Instance;
 
-   fresh_count : Long_Long_Integer := 0;
+   fresh_count     : Long_Long_Integer := 0;
+   fresh_count_pt2 : Long_Long_Integer := 0;
+
+   function fresh_ranges_overlap
+     (range1 : in range_type;
+      range2 : in range_type)
+     return boolean
+   is
+   begin
+
+      return (((range1.start <= range2.start
+              and then
+              range1.finish >= range2.start)
+              or else
+              (range2.start <= range1.start
+              and then
+                 range2.finish >= range1.start))
+              and then
+              range1.valid
+              and then
+              range2.valid);
+
+   end fresh_ranges_overlap;
 
    procedure Get_Input (S : Ada.Text_IO.File_Type)
    is
@@ -46,7 +69,8 @@ package body day5_2025 is
          then
             ingredient_ranges.append
               ((start  => Long_Long_Integer'Value(ada.Strings.Unbounded.To_String(USV)(1..split-1)),
-                finish => Long_Long_Integer'Value(ada.Strings.Unbounded.To_String(USV)(split+1..ada.Strings.Unbounded.Length(USV)))));
+                finish => Long_Long_Integer'Value(ada.Strings.Unbounded.To_String(USV)(split+1..ada.Strings.Unbounded.Length(USV))),
+                valid  => True));
          elsif ada.Strings.Unbounded.Index_Non_Blank(Source => USV) /= 0
          then
             ingredients.append(Long_Long_Integer'Value(ada.Strings.Unbounded.To_String(USV)));
@@ -84,6 +108,36 @@ package body day5_2025 is
       end loop;
 
       Ada.Text_IO.Put_Line ("fresh_count " & fresh_count'Image);
+
+      for x in ranges_type.first..ingredient_ranges.last
+      loop
+
+         for y in ranges_type.first..ingredient_ranges.last
+         loop
+            if (x /= y
+                and then
+                fresh_ranges_overlap(range1 => ingredient_ranges.Table(x),
+                                     range2 => ingredient_ranges.Table(y)))
+            then
+               ingredient_ranges.Table(x).valid := false;
+               ingredient_ranges.Table(y).start := Long_Long_Integer'Min(ingredient_ranges.Table(x).start,
+                                                                         ingredient_ranges.Table(y).start);
+               ingredient_ranges.Table(y).finish := Long_Long_Integer'Max(ingredient_ranges.Table(x).finish,
+                                                                          ingredient_ranges.Table(y).finish);
+            end if;
+         end loop;
+
+      end loop;
+
+      for x in ranges_type.first..ingredient_ranges.last
+      loop
+         if (ingredient_ranges.Table(x).valid)
+         then
+            fresh_count_pt2 := @ + ingredient_ranges.Table(x).finish - ingredient_ranges.Table(x).start + 1;
+         end if;
+      end loop;
+
+      Ada.Text_IO.Put_Line ("fresh_count_pt2 " & fresh_count_pt2'Image);
 
       Ada.Text_IO.Close(Input_File);
 
