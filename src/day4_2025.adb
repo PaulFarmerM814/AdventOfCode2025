@@ -13,6 +13,9 @@ package body day4_2025 is
 
    grid : grid_type.Instance;
 
+   fewer_than_four_count : natural := 0;
+   fewer_than_four_count_pt2 : natural := 0;
+
    procedure Get_Input (S : Ada.Text_IO.File_Type)
    is
 
@@ -38,11 +41,85 @@ package body day4_2025 is
 
    end Get_Input;
 
+   procedure remove_rolls
+   is
+
+      rolls_removed : boolean := true;
+
+   begin
+
+       declare
+         Tab : grid_type.Table_Type renames grid.Table (Positive'First .. grid.Last);
+
+         row_length : constant positive := ada.strings.Unbounded.Length(tab(positive'First));
+
+         adjacent_count : natural := 0;
+
+      begin
+
+         loop
+
+            rolls_removed := false;
+
+            for x in positive range Positive'First + 1 .. grid.Last - 1
+            loop
+               for y in positive range 2..row_length - 1
+               loop
+                  if ada.strings.Unbounded.Element(tab(x),y) = '@'
+                  then
+                     adjacent_count := 0;
+                     if (ada.strings.Unbounded.Element(tab(x+1),y) = '@')
+                     then
+                        adjacent_count := @ + 1;
+                     end if;
+                     if (ada.strings.Unbounded.Element(tab(x+1),y-1) = '@')
+                     then
+                        adjacent_count := @ + 1;
+                     end if;
+                     if (ada.strings.Unbounded.Element(tab(x+1),y+1) = '@')
+                     then
+                        adjacent_count := @ + 1;
+                     end if;
+                     if (ada.strings.Unbounded.Element(tab(x-1),y) = '@')
+                     then
+                        adjacent_count := @ + 1;
+                     end if;
+                     if (ada.strings.Unbounded.Element(tab(x-1),y-1) = '@')
+                     then
+                        adjacent_count := @ + 1;
+                     end if;
+                     if (ada.strings.Unbounded.Element(tab(x-1),y+1) = '@')
+                     then
+                        adjacent_count := @ + 1;
+                     end if;
+                     if (ada.strings.Unbounded.Element(tab(x),y-1) = '@')
+                     then
+                        adjacent_count := @ + 1;
+                     end if;
+                     if (ada.strings.Unbounded.Element(tab(x),y+1) = '@')
+                     then
+                        adjacent_count := @ + 1;
+                     end if;
+
+                     if (adjacent_count < 4)
+                     then
+                        rolls_removed := true;
+                        fewer_than_four_count_pt2 := @ + 1;
+                        ada.strings.Unbounded.Replace_Element(tab(x),y,'.');
+                     end if;
+                  end if;
+               end loop;
+            end loop;
+
+            exit when not rolls_removed;
+         end loop;
+      end;
+
+   end remove_rolls;
+
    procedure run is
 
       Input_File   : Ada.Text_IO.File_Type;
-
-      fewer_than_four_count : natural := 0;
 
    begin
       Ada.Text_IO.Open
@@ -125,6 +202,9 @@ package body day4_2025 is
       end;
 
       Ada.Text_IO.Put_Line ("fewer_than_four_count " & fewer_than_four_count'Image);
+
+      remove_rolls;
+      Ada.Text_IO.Put_Line ("fewer_than_four_count_pt2 " & fewer_than_four_count_pt2'Image);
 
       Ada.Text_IO.Close(Input_File);
 
