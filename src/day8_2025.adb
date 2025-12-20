@@ -33,8 +33,12 @@ package body day8_2025 is
    input : input_type.Instance;
 
    circuits         : circuit_type := (others => 0);
+   circuits_pt1     : circuit_type := (others => 0);
    circuit_count    : natural := 0;
+   circuit_count_pt2 : integer := -1;
    connection_count : natural := 0;
+   last_circuit_a : natural := 0;
+   last_circuit_b : natural := 0;
 
    procedure Get_Input (S : Ada.Text_IO.File_Type)
    is
@@ -99,14 +103,14 @@ package body day8_2025 is
          procedure Move1 (From : Natural; To : Natural)
          is
          begin
-            circuits(to) := circuits(from);
+            circuits_pt1(to) := circuits_pt1(from);
          end Move1;
          pragma inline(Move1);
 
          function Lt1 (Op1, Op2 : Natural) return Boolean
          is
          begin
-            return (circuits(op1) > circuits(op2));
+            return (circuits_pt1(op1) > circuits_pt1(op2));
          end Lt1;
          pragma inline(Lt1);
 
@@ -155,6 +159,9 @@ package body day8_2025 is
                      if (input.Table(sequential_distances(x).start_coord).in_circuit /=
                            input.Table(sequential_distances(x).end_coord).in_circuit)
                      then
+                        last_circuit_a := sequential_distances(x).start_coord;
+                        last_circuit_b := sequential_distances(x).end_coord;
+
                         local_circuit := input.Table(sequential_distances(x).end_coord).in_circuit;
                         circuits(input.Table(sequential_distances(x).start_coord).in_circuit) :=
                           @ + circuits(input.Table(sequential_distances(x).end_coord).in_circuit);
@@ -166,11 +173,18 @@ package body day8_2025 is
                               input.Table(y).in_circuit := input.Table(sequential_distances(x).start_coord).in_circuit;
                            end if;
                         end loop;
+                        circuit_count_pt2 := @ - 1;
                      end if;
                   end if;
                elsif (input.Table(sequential_distances(x).end_coord).in_circuit = 0)
                then
-                  circuit_count := circuit_count + 1;
+                  if (circuit_count_pt2 = -1)
+                  then
+                     circuit_count_pt2 := 1;
+                  else
+                     circuit_count_pt2 := @ + 1;
+                  end if;
+                  circuit_count := @ + 1;
                   input.Table(sequential_distances(x).start_coord).in_circuit := circuit_count;
                   input.Table(sequential_distances(x).end_coord).in_circuit := circuit_count;
                   circuits(circuit_count) := 2;
@@ -181,14 +195,25 @@ package body day8_2025 is
                end if;
             end if;
 
-            exit when connection_count = 1000;
+            if (connection_count = 1000)
+            then
+               circuits_pt1 := circuits;
+               sort_type1.Sort(1000);
+               ada.text_io.put_line("Part 1 - " & circuits_pt1(1)'Img & " " & circuits_pt1(2)'Img & " " & circuits_pt1(3)'Img);
+               ada.text_io.put_line("Part 1 - " & Integer'Image(circuits_pt1(1) * circuits_pt1(2) * circuits_pt1(3)));
+            end if;
+
+            if (circuit_count_pt2 = 1)
+            then
+               circuits_pt1 := circuits;
+               sort_type1.Sort(1000);
+               if (circuits_pt1(1) = 1000)
+               then
+                  ada.text_io.put_line("Part 2 - " & Long_Long_Integer'Image(input.Table(last_circuit_a).x * input.Table(last_circuit_b).x));
+                  exit;
+               end if;
+            end if;
          end loop;
-
-         sort_type1.Sort(1000);
-
-         ada.text_io.put_line(circuits(1)'Img & " " & circuits(2)'Img & " " & circuits(3)'Img);
-         ada.text_io.put_line(Integer'Image(circuits(1) * circuits(2) * circuits(3)));
-
       end;
 
       Ada.Text_IO.Close(Input_File);
