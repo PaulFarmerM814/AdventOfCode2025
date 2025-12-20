@@ -5,7 +5,7 @@ with day4_2025;
 with day5_2025;
 with day6_2025;
 with day7_2025;
---  with day8_2025;
+with day8_2025;
 --  with day9_2025;
 --  with day10_2025;
 --  with day11_2025;
@@ -22,7 +22,7 @@ begin
    day5_2025.run;
    day6_2025.run;
    day7_2025.run;
-   --  day8_2025.run;
+   day8_2025.run;
    --  day9_2025.run;
    --  day10_2025.run;
    --  day11_2025.run;
