@@ -8,7 +8,7 @@ with day7_2025;
 with day8_2025;
 with day9_2025;
 with day10_2025;
---  with day11_2025;
+with day11_2025;
 --  with day12_2025;
 
 procedure AdventOfCode2025 is
@@ -25,7 +25,7 @@ begin
    day8_2025.run;
    day9_2025.run;
    day10_2025.run;
-   --  day11_2025.run;
+   day11_2025.run;
    --  day12_2025.run;
 
 
