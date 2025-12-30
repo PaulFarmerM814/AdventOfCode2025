@@ -15,17 +15,17 @@ procedure AdventOfCode2025 is
 
 begin
 
-   day1_2025.run;
-   day2_2025.run;
-   day3_2025.run;
-   day4_2025.run;
-   day5_2025.run;
-   day6_2025.run;
-   day7_2025.run;
-   day8_2025.run;
-   day9_2025.run;
-   day10_2025.run;
-   day11_2025.run;
+   Day1_2025.run;
+   Day2_2025.run;
+   Day3_2025.run;
+   Day4_2025.run;
+   Day5_2025.run;
+   Day6_2025.run;
+   Day7_2025.run;
+   Day8_2025.run;
+   Day9_2025.run;
+   Day10_2025.run;
+   Day11_2025.Run;
    --  day12_2025.run;
 
 

@@ -10,7 +10,6 @@ with Ada.Strings.Hash;
 
 package body Day11_2025 is
 
-
    subtype List_Element_Type is String (1 .. 3);
 
    procedure Destroy_List_Element (Elem : in out List_Element_Type)
@@ -35,8 +34,11 @@ package body Day11_2025 is
 
 
    type Hash_Table_Type is record
-      Key  : List_Element_Type;
-      List : String_List.Doubly_Linked_List;
+      Key         : List_Element_Type;
+      List        : String_List.Doubly_Linked_List := String_List.Create;
+      Dac_Visited : Boolean := False;
+      Fft_Visited : Boolean := False;
+      Saved_Paths : Long_Long_Integer := 0;
    end record;
 
    function "=" (Left, Right : in Hash_Table_Type)
@@ -72,8 +74,6 @@ package body Day11_2025 is
                                                        Low    => 1,
                                                        High   => Separator - 1);
 
-      Current_Line.List := String_List.Create;
-
       Gnat.String_Split.Create (S          => Split_String,
                                 From       => Ada.Strings.Unbounded.Slice (Source => USV,
                                                                            Low    => Separator + 2,
@@ -92,14 +92,17 @@ package body Day11_2025 is
 
    procedure Run is
 
+      use type Hashed_Input_Store.Cursor;
+
       Input_File   : Ada.Text_IO.File_Type;
 
       Start        : Hash_Table_Type;
 
-      Path_Count   : Natural := 0;
+      Path_Count   : Long_Long_Integer := 0;
+      Temp_Count   : Long_Long_Integer := 0;
 
       procedure Scan_Paths (Start_Point : in     Hash_Table_Type;
-                            Path_Count  : in out Natural)
+                            Path_Count  : in out Long_Long_Integer)
       is
 
          Iter    : String_List.Iterator;
@@ -124,6 +127,201 @@ package body Day11_2025 is
 
       end Scan_Paths;
 
+      procedure Scan_Pt2_Paths (Start_Point       : in     Hash_Table_Type;
+                                Path_Count        : in out Long_Long_Integer;
+                                Single_Path_Count : in out Long_Long_Integer;
+                                Depth             : in     Long_Integer)
+      is
+
+         Iter    : String_List.Iterator;
+         Element : List_Element_Type;
+
+         New_Start : Hash_Table_Type;
+
+         Local_Path_Count     : Long_Long_Integer := 0;
+         Sum_Local_Path_Count : Long_Long_Integer := 0;
+
+         Local_Element : Hash_Table_Type := Start_Point;
+
+      begin
+
+         Iter := String_List.Iterate (Start_Point.List);
+         while String_List.Has_Next (Iter) loop
+            String_List.Next (Iter, Element);
+            if (Element /= "out")
+            then
+               New_Start := Input.Element (Key => Element);
+               --  Ada.Text_IO.Put_Line(Start_Point.Key & " " & New_Start.Key);
+               if (New_Start.Dac_Visited and then New_Start.Fft_Visited)
+               then
+                  if (New_Start.Saved_Paths /= 0)
+                  then
+                     Path_Count := @ + New_Start.Saved_Paths;
+                     Sum_Local_Path_Count := @ + New_Start.Saved_Paths;
+                  else
+                     Scan_Pt2_Paths (Start_Point       => New_Start,
+                                     Path_Count        => Path_Count,
+                                     Single_Path_Count => Local_Path_Count,
+                                     Depth             => Depth + 1);
+
+                     Sum_Local_Path_Count := @ + Local_Path_Count;
+                  end if;
+               else
+                  --  Ada.Text_IO.Put_Line("Ignoring " & Start_Point.Key & " " & New_Start.Key);
+                  null;
+               end if;
+            elsif (Element = "out")
+            then
+               --  Ada.Text_IO.Put_Line ("out " & Start_Point.Key & " " & Depth'Img);
+               Path_Count := @ + 1;
+
+               Sum_Local_Path_Count := 1;
+            end if;
+         end loop;
+
+         if Local_Element.Saved_Paths = 0
+         then
+            Local_Element.Saved_Paths := Sum_Local_Path_Count;
+
+            Input.Replace (Key       => Start_Point.Key,
+                           New_Item  => Local_Element);
+         end if;
+
+         Single_Path_Count := Sum_Local_Path_Count;
+
+      end Scan_Pt2_Paths;
+
+      procedure Scan_From_Element (Start_Point : in Hash_Table_Type;
+                                   Fft_Visited : in Boolean;
+                                   Dac_Visited : in Boolean)
+      is
+
+         Iter    : String_List.Iterator;
+         Element : List_Element_Type;
+
+         New_Start : Hash_Table_Type := Start_Point;
+
+      begin
+
+         if (Fft_Visited)
+         then
+            New_Start.Fft_Visited := True;
+         end if;
+         if (Dac_Visited)
+         then
+            New_Start.Dac_Visited := True;
+         end if;
+         Input.Replace (Key       => New_Start.Key,
+                        New_Item  => New_Start);
+
+         Iter := String_List.Iterate (Start_Point.List);
+         while String_List.Has_Next (Iter) loop
+            String_List.Next (Iter, Element);
+            if (Element /= "out")
+            then
+               New_Start := Input.Element (Key => Element);
+               if ((Fft_Visited and then not New_Start.Fft_Visited)
+                   or else
+                   (Dac_Visited and then not New_Start.Dac_Visited))
+               then
+                  Scan_From_Element (Start_Point => New_Start,
+                                     Dac_Visited => Dac_Visited,
+                                     Fft_Visited => Fft_Visited);
+               end if;
+            end if;
+         end loop;
+
+      end Scan_From_Element;
+
+      procedure Scan_To_Element (Start_Point : in Hash_Table_Type;
+                                 Fft_Visited : in Boolean;
+                                 Dac_Visited : in Boolean)
+      is
+
+         Iter    : String_List.Iterator;
+         Element : List_Element_Type;
+
+         New_Start : Hash_Table_Type := Start_Point;
+
+         Cursor    : Hashed_Input_Store.Cursor;
+
+         Input_Element : Hash_Table_Type;
+
+      begin
+
+         if (Fft_Visited)
+         then
+            New_Start.Fft_Visited := True;
+         end if;
+         if (Dac_Visited)
+         then
+            New_Start.Dac_Visited := True;
+         end if;
+
+         Input.Replace (Key       => New_Start.Key,
+                        New_Item  => New_Start);
+
+         Cursor := Input.First;
+         while Cursor /= Hashed_Input_Store.No_Element
+         loop
+            Input_Element := Hashed_Input_Store.Element (Position => Cursor);
+
+            Iter := String_List.Iterate (Input_Element.List);
+            while String_List.Has_Next (Iter) loop
+               String_List.Next (Iter, Element);
+               if (Element = Start_Point.Key)
+               then
+                  New_Start := Hashed_Input_Store.Element (Position => Cursor);
+                  if ((Fft_Visited and then not New_Start.Fft_Visited)
+                      or else
+                        (Dac_Visited and then not New_Start.Dac_Visited))
+                  then
+                     Scan_To_Element (Start_Point => New_Start,
+                                      Fft_Visited => Fft_Visited,
+                                      Dac_Visited => Dac_Visited);
+                     exit;
+                  end if;
+               end if;
+            end loop;
+            Hashed_Input_Store.Next(Position => Cursor);
+         end loop;
+
+      end Scan_To_Element;
+
+      procedure Find_All_Fft_Nodes
+      is
+
+         Start : constant Hash_Table_Type := Input.Element (Key => "fft");
+
+      begin
+
+         Scan_From_Element (Start_Point => Start,
+                            Fft_Visited => True,
+                            Dac_Visited => False);
+
+         Scan_To_Element (Start_Point => Start,
+                          Fft_Visited => True,
+                          Dac_Visited => False);
+
+      end Find_All_Fft_Nodes;
+
+      procedure Find_All_Dac_Nodes
+      is
+
+         Start : constant Hash_Table_Type := Input.Element (Key => "dac");
+
+      begin
+
+         Scan_From_Element (Start_Point => Start,
+                            Fft_Visited => False,
+                            Dac_Visited => True);
+
+         Scan_To_Element (Start_Point => Start,
+                          Fft_Visited => False,
+                          Dac_Visited => True);
+
+      end Find_All_Dac_Nodes;
+
    begin
       Ada.Text_IO.Open
         (File => Input_File,
@@ -139,12 +337,29 @@ package body Day11_2025 is
          end;
       end loop;
 
-      Start :=  Input.Element (Key => "you");
+      if (Input.Find (Key => "you") /= Hashed_Input_Store.No_Element)
+      then
+         Start := Input.Element (Key => "you");
 
-      Scan_Paths (Start_Point => Start,
-                  Path_Count  => Path_Count);
+         Scan_Paths (Start_Point => Start,
+                     Path_Count  => Path_Count);
 
-      Ada.Text_IO.Put_Line("Day 11 - Part 1 - Path Count " & Path_Count'Img);
+         Ada.Text_IO.Put_Line ("Day 11 - Part 1 - Path Count " & Path_Count'Img);
+      end if;
+
+      Path_Count := 0;
+
+      Find_All_Fft_Nodes;
+      Find_All_Dac_Nodes;
+
+      Start := Input.Element (Key => "svr");
+
+      Scan_Pt2_Paths (Start_Point       => Start,
+                      Path_Count        => Path_Count,
+                      Single_Path_Count => Temp_Count,
+                      Depth             => 0);
+
+      Ada.Text_IO.Put_Line ("Day 11 - Part 2 - Path Count " & Path_Count'Img);
 
       Ada.Text_IO.Close (Input_File);
 
